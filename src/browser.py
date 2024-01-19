@@ -65,6 +65,11 @@ class Browser:
         options.add_argument("--ignore-certificate-errors-spki-list")
         options.add_argument("--ignore-ssl-errors")
 
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-webgl')
+
+
         seleniumwireOptions: dict[str, Any] = {"verify_ssl": False}
 
         if self.proxy:
@@ -74,11 +79,20 @@ class Browser:
                 "no_proxy": "localhost,127.0.0.1",
             }
 
-        driver = webdriver.Chrome(
-            options=options,
-            seleniumwire_options=seleniumwireOptions,
-            user_data_dir=self.userDataDir.as_posix(),
-        )
+        platform = os.uname()[4]
+        if platform.startswith('arm') or platform.startswith('aarch'):
+            driver = webdriver.Chrome(
+                driver_executable_path="/usr/bin/chromedriver",
+                options=options,
+                seleniumwire_options=seleniumwireOptions,
+                user_data_dir=self.userDataDir.as_posix(),
+            )
+        else:
+            driver = webdriver.Chrome(
+                options=options,
+                seleniumwire_options=seleniumwireOptions,
+                user_data_dir=self.userDataDir.as_posix(),
+            )
 
         seleniumLogger = logging.getLogger("seleniumwire")
         seleniumLogger.setLevel(logging.ERROR)
